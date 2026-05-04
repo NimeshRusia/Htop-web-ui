@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Htop Web UI</title>
+	<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+	<header class="app-header">
+		<div>
+			<p class="eyebrow">Web System Monitor</p>
+			<h1>Htop Web UI</h1>
+		</div>
+		<div class="status-pill" id="connection-status">Server checking...</div>
+	</header>
+
+	<main class="layout">
+		<section class="panel">
+			<div class="panel-header">
+				<h2>Overview</h2>
+				<span id="last-updated">Waiting for data...</span>
+			</div>
+			<div class="summary-grid">
+				<div class="summary-card">
+					<span>CPU</span>
+					<strong id="cpu-load">--%</strong>
+				</div>
+				<div class="summary-card">
+					<span>Memory</span>
+					<strong id="memory-load">--%</strong>
+				</div>
+				<div class="summary-card">
+					<span>Processes</span>
+					<strong id="process-count">--</strong>
+				</div>
+				<div class="summary-card">
+					<span>Uptime</span>
+					<strong id="uptime-value">--</strong>
+				</div>
+			</div>
+		</section>
+
+		<section class="panel">
+			<div class="panel-header">
+				<h2>CPU Cores</h2>
+				<span id="cpu-brand">Waiting for hardware info...</span>
+			</div>
+			<div id="cpu-core-list" class="stack-list"></div>
+		</section>
+
+		<section class="panel">
+			<div class="panel-header">
+				<h2>Memory Usage</h2>
+				<span id="memory-details">Waiting for memory data...</span>
+			</div>
+			<div class="memory-usage">
+				<div class="memory-bar">
+					<span id="memory-bar-fill"></span>
+				</div>
+				<div class="memory-stats">
+					<div>
+						<span>Used</span>
+						<strong id="memory-used">--</strong>
+					</div>
+					<div>
+						<span>Free</span>
+						<strong id="memory-free">--</strong>
+					</div>
+					<div>
+						<span>Total</span>
+						<strong id="memory-total">--</strong>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="panel wide-panel">
+			<div class="panel-header">
+				<h2>Processes</h2>
+				<div class="process-controls">
+					<input id="process-search" type="search" placeholder="Search processes..." />
+					<span id="metrics-note">Live top processes from the backend</span>
+				</div>
+			</div>
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th id="th-pid" class="sortable">PID</th>
+							<th id="th-name" class="sortable">Name</th>
+							<th id="th-cpu" class="sortable">CPU %</th>
+							<th id="th-mem" class="sortable">MEM %</th>
+							<th id="th-state" class="sortable">State</th>
+							<th>Action</th>
+						</tr>
+					</thead>
+					<tbody id="process-table-body">
+						<tr>
+							<td colspan="5">Waiting for process data...</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+	</main>
+
+	<script src="/state.js" defer></script>
+	<script src="/socket.io/socket.io.js" defer></script>
+	<script src="/socket.js" defer></script>
+	<script src="/api.js" defer></script>
+	<script src="/main.js" defer></script>
+</body>
+</html>
