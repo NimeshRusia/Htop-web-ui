@@ -3,107 +3,192 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Htop Web UI</title>
+	<title>SysMon — System Monitor</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="/style.css">
 </head>
 <body>
-	<header class="app-header">
-		<div>
-			<p class="eyebrow">Web System Monitor</p>
-			<h1>Htop Web UI</h1>
-		</div>
-		<div class="status-pill" id="connection-status">Server checking...</div>
-	</header>
+	<!-- Animated background orbs -->
+	<div class="bg-orbs" aria-hidden="true">
+		<div class="orb orb-1"></div>
+		<div class="orb orb-2"></div>
+		<div class="orb orb-3"></div>
+	</div>
 
-	<main class="layout">
-		<section class="panel">
-			<div class="panel-header">
-				<h2>Overview</h2>
-				<span id="last-updated">Waiting for data...</span>
-			</div>
-			<div class="summary-grid">
-				<div class="summary-card">
-					<span>CPU</span>
-					<strong id="cpu-load">--%</strong>
+	<div class="app-shell">
+		<!-- Header -->
+		<header class="app-header">
+			<div class="header-brand">
+				<div class="brand-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+					</svg>
 				</div>
-				<div class="summary-card">
-					<span>Memory</span>
-					<strong id="memory-load">--%</strong>
-				</div>
-				<div class="summary-card">
-					<span>Processes</span>
-					<strong id="process-count">--</strong>
-				</div>
-				<div class="summary-card">
-					<span>Uptime</span>
-					<strong id="uptime-value">--</strong>
+				<div>
+					<p class="eyebrow">Web System Monitor</p>
+					<h1>SysMon</h1>
 				</div>
 			</div>
-		</section>
+			<div class="header-right">
+				<span id="last-updated" class="last-updated-text">Initializing...</span>
+				<div class="status-pill" id="connection-status">
+					<span class="status-dot"></span>
+					<span class="status-label">Connecting</span>
+				</div>
+			</div>
+		</header>
 
-		<section class="panel">
-			<div class="panel-header">
-				<h2>CPU Cores</h2>
-				<span id="cpu-brand">Waiting for hardware info...</span>
-			</div>
-			<div id="cpu-core-list" class="stack-list"></div>
-		</section>
-
-		<section class="panel">
-			<div class="panel-header">
-				<h2>Memory Usage</h2>
-				<span id="memory-details">Waiting for memory data...</span>
-			</div>
-			<div class="memory-usage">
-				<div class="memory-bar">
-					<span id="memory-bar-fill"></span>
-				</div>
-				<div class="memory-stats">
-					<div>
-						<span>Used</span>
-						<strong id="memory-used">--</strong>
+		<main class="layout">
+			<!-- Stats Row -->
+			<section class="panel stats-panel wide-panel">
+				<div class="summary-grid">
+					<div class="summary-card card-cpu">
+						<div class="card-icon">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+						</div>
+						<div class="card-body">
+							<span class="card-label">CPU Load</span>
+							<strong class="card-value" id="cpu-load">--%</strong>
+						</div>
+						<div class="card-ring-wrap">
+							<svg class="card-ring" viewBox="0 0 36 36" id="cpu-ring-svg">
+								<circle class="ring-track" cx="18" cy="18" r="15.9"/>
+								<circle class="ring-fill ring-fill-cpu" cx="18" cy="18" r="15.9" id="cpu-ring-fill"
+									stroke-dasharray="0 100" stroke-dashoffset="25"/>
+							</svg>
+						</div>
 					</div>
-					<div>
-						<span>Free</span>
-						<strong id="memory-free">--</strong>
-					</div>
-					<div>
-						<span>Total</span>
-						<strong id="memory-total">--</strong>
-					</div>
-				</div>
-			</div>
-		</section>
 
-		<section class="panel wide-panel">
-			<div class="panel-header">
-				<h2>Processes</h2>
-				<div class="process-controls">
-					<input id="process-search" type="search" placeholder="Search processes..." />
-					<span id="metrics-note">Live top processes from the backend</span>
+					<div class="summary-card card-mem">
+						<div class="card-icon">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M8 6V4M16 6V4M8 18v2M16 18v2"/><path d="M7 10h2M11 10h2M15 10h2"/></svg>
+						</div>
+						<div class="card-body">
+							<span class="card-label">Memory</span>
+							<strong class="card-value" id="memory-load">--%</strong>
+						</div>
+						<div class="card-ring-wrap">
+							<svg class="card-ring" viewBox="0 0 36 36">
+								<circle class="ring-track" cx="18" cy="18" r="15.9"/>
+								<circle class="ring-fill ring-fill-mem" cx="18" cy="18" r="15.9" id="mem-ring-fill"
+									stroke-dasharray="0 100" stroke-dashoffset="25"/>
+							</svg>
+						</div>
+					</div>
+
+					<div class="summary-card card-proc">
+						<div class="card-icon">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+						</div>
+						<div class="card-body">
+							<span class="card-label">Processes</span>
+							<strong class="card-value" id="process-count">--</strong>
+						</div>
+					</div>
+
+					<div class="summary-card card-uptime">
+						<div class="card-icon">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+						</div>
+						<div class="card-body">
+							<span class="card-label">Uptime</span>
+							<strong class="card-value mono" id="uptime-value">--:--:--</strong>
+						</div>
+					</div>
 				</div>
-			</div>
-			<div class="table-wrap">
-				<table>
-					<thead>
-						<tr>
-							<th id="th-pid" class="sortable">PID</th>
-							<th id="th-name" class="sortable">Name</th>
-							<th id="th-cpu" class="sortable">CPU %</th>
-							<th id="th-mem" class="sortable">MEM %</th>
-							<th id="th-state" class="sortable">State</th>
-							<th>Action</th>
-						</tr>
-					</thead>
-					<tbody id="process-table-body">
-						<tr>
-							<td colspan="5">Waiting for process data...</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-		</section>
-	</main>
+			</section>
+
+			<!-- CPU Cores -->
+			<section class="panel panel-cpu-cores">
+				<div class="panel-header">
+					<div class="panel-title-group">
+						<div class="panel-icon">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+						</div>
+						<h2>CPU Cores</h2>
+					</div>
+					<span class="panel-sub" id="cpu-brand">Detecting hardware...</span>
+				</div>
+				<div id="cpu-core-list" class="stack-list"></div>
+			</section>
+
+			<!-- Memory -->
+			<section class="panel panel-memory">
+				<div class="panel-header">
+					<div class="panel-title-group">
+						<div class="panel-icon">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4z"/></svg>
+						</div>
+						<h2>Memory</h2>
+					</div>
+					<span class="panel-sub" id="memory-details">Loading...</span>
+				</div>
+				<div class="memory-usage">
+					<div class="memory-bar-wrap">
+						<div class="memory-bar">
+							<span id="memory-bar-fill"></span>
+							<span class="memory-bar-label" id="memory-bar-pct">0%</span>
+						</div>
+					</div>
+					<div class="memory-stats">
+						<div class="mem-stat">
+							<span>Used</span>
+							<strong id="memory-used">--</strong>
+						</div>
+						<div class="mem-stat">
+							<span>Free</span>
+							<strong id="memory-free">--</strong>
+						</div>
+						<div class="mem-stat">
+							<span>Total</span>
+							<strong id="memory-total">--</strong>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- Processes -->
+			<section class="panel wide-panel panel-processes">
+				<div class="panel-header">
+					<div class="panel-title-group">
+						<div class="panel-icon">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+						</div>
+						<h2>Processes</h2>
+					</div>
+					<div class="process-controls">
+						<div class="search-wrap">
+							<svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+							<input id="process-search" type="search" placeholder="Search by name or PID..." autocomplete="off" />
+						</div>
+						<span class="live-badge">
+							<span class="live-dot"></span>
+							Live
+						</span>
+					</div>
+				</div>
+				<div class="table-wrap">
+					<table>
+						<thead>
+							<tr>
+								<th id="th-pid" class="sortable">PID <span class="sort-arrow">↕</span></th>
+								<th id="th-name" class="sortable">Name <span class="sort-arrow">↕</span></th>
+								<th id="th-cpu" class="sortable">CPU % <span class="sort-arrow">↕</span></th>
+								<th id="th-mem" class="sortable">MEM % <span class="sort-arrow">↕</span></th>
+								<th id="th-state" class="sortable">State <span class="sort-arrow">↕</span></th>
+								<th>Action</th>
+							</tr>
+						</thead>
+						<tbody id="process-table-body">
+							<tr><td colspan="6">Waiting for process data...</td></tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+		</main>
+	</div>
 
 	<script src="/state.js" defer></script>
 	<script src="/socket.io/socket.io.js" defer></script>

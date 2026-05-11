@@ -20,17 +20,40 @@ async function collectMetrics() {
 		si.cpu(),
 	]);
 
+	const nameMap = new Map();
+	processes.list.forEach(p => {
+		const n = (p.name || '').toLowerCase();
+		if (!nameMap.has(n)) nameMap.set(n, new Set());
+		nameMap.get(n).add(p.pid);
+	});
+
 	const topProcesses = processes.list
 		.slice()
 		.sort((firstProcess, secondProcess) => secondProcess.cpu - firstProcess.cpu)
-		.slice(0, 8)
-		.map((process) => ({
-			pid: process.pid,
-			name: process.name,
-			cpu: process.cpu,
-			mem: process.mem,
-			state: process.state,
-		}));
+		.map((process) => {
+			const n = (process.name || '').toLowerCase();
+			const peers = nameMap.get(n);
+			const isMain = peers && peers.size > 1 && !peers.has(process.parentPid);
+
+			// Windows doesn't expose Unix-style process states — systeminformation
+			// returns 'unknown' for most processes. Derive a useful label instead:
+			//   running  → process consumed CPU in this sample
+			//   sleeping → process is idle (0 % CPU)
+			const rawState = (process.state || '').toLowerCase().trim();
+			const knownStates = ['running', 'sleeping', 'stopped', 'zombie', 'idle', 'locked', 'wait'];
+			const state = knownStates.includes(rawState)
+				? rawState
+				: (process.cpu > 0 ? 'running' : 'sleeping');
+
+			return {
+				pid: process.pid,
+				name: process.name,
+				cpu: process.cpu,
+				mem: process.mem,
+				state,
+				isMain,
+			};
+		});
 
 	return {
 		timestamp: new Date().toISOString(),
@@ -67,6 +90,35 @@ async function collectMetrics() {
 app.use(express.static(publicDirectory));
 app.use(express.json());
 
+// ── Protected process definitions ────────────────────────────────────────
+// Killing these on Windows causes BSOD, forced reboot, or session crash.
+const PROTECTED_PIDS = new Set([0, 4]); // System Idle Process, System
+
+const PROTECTED_NAMES = new Set([
+	'system',
+	'system idle process',
+	'smss.exe',       // Session Manager Subsystem
+	'csrss.exe',      // Client/Server Runtime — BSOD if killed
+	'wininit.exe',    // Windows Initialization
+	'winlogon.exe',   // Logon manager — session crash
+	'services.exe',   // Service Control Manager
+	'lsass.exe',      // Local Security Authority — BSOD
+	'lsm.exe',        // Local Session Manager
+	'ntoskrnl.exe',   // NT Kernel & System
+]);
+
+/**
+ * Returns true when the process must NOT be killed.
+ * @param {number} pid
+ * @param {string|undefined} name
+ */
+function isProtected(pid, name) {
+	if (PROTECTED_PIDS.has(pid)) return true;
+	if (name && PROTECTED_NAMES.has(name.toLowerCase().trim())) return true;
+	return false;
+}
+
+
 app.get('/api/health', (request, response) => {
 	response.json({
 		status: 'ok',
@@ -90,10 +142,18 @@ app.get('/api/metrics', async (request, response) => {
 
 // Kill a process by PID (best-effort). Requires sufficient permissions.
 app.post('/api/processes/kill', async (request, response) => {
-	const { pid } = request.body || {};
+	const { pid, name } = request.body || {};
 
-	if (!pid || typeof pid !== 'number' || !Number.isInteger(pid) || pid <= 0) {
+	if (!pid || typeof pid !== 'number' || !Number.isInteger(pid) || pid < 0) {
 		return response.status(400).json({ error: 'Invalid pid' });
+	}
+
+	// Hard block: refuse to kill any protected system process.
+	if (isProtected(pid, name)) {
+		return response.status(403).json({
+			error: 'Protected process',
+			message: `Process "${name || pid}" is a protected system process and cannot be killed. Doing so could cause a system crash or BSOD.`,
+		});
 	}
 
 	try {
@@ -102,6 +162,14 @@ app.post('/api/processes/kill', async (request, response) => {
 	} catch (err) {
 		return response.status(500).json({ error: 'Failed to kill process', message: err instanceof Error ? err.message : String(err) });
 	}
+});
+
+// Expose the protected list so the frontend can disable Kill buttons proactively.
+app.get('/api/protected-processes', (request, response) => {
+	response.json({
+		pids: Array.from(PROTECTED_PIDS),
+		names: Array.from(PROTECTED_NAMES),
+	});
 });
 
 app.use((request, response) => {
